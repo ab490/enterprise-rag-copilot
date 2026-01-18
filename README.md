@@ -15,7 +15,7 @@ The system ingests public, enterprise-style operational documents and enables ci
 ## Features
 
 - Ingests pdf, md, txt, and csv documents
-- Builds a*persistent FAISS vector index
+- Builds a persistent FAISS vector index
 - Answers questions with citation-backed responses
 - Logs retrieval and generation latency
 - Includes a basic evaluation endpoint (LLM-as-judge)
@@ -91,10 +91,10 @@ You can run the service in **one of two ways**:
 - **Option B: Virtual environment**
 
 
-## A. Docker
+### A. Docker
 
 
-### 1. Configure environment variables
+#### 1. Configure environment variables
 ```bash
 cp .env.example .env
 ```
@@ -104,27 +104,27 @@ Edit .env and set OPENAI_API_KEY
 OPENAI_API_KEY=your_api_key_here
 ```
 
-### 2. Build and run with Docker Compose
+#### 2. Build and run with Docker Compose
 ```bash
 docker compose up --build
 ```
 
 The service will be available at ```http://localhost:8000```
 
-## B. Virtual environment
+### B. Virtual environment
 
-### 1. Create and activate a virtual environment
+#### 1. Create and activate a virtual environment
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 ```
 
-### 2. Install dependencies
+#### 2. Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Configure environment variables
+#### 3. Configure environment variables
 ```bash
 cp .env.example .env
 ```
@@ -134,7 +134,7 @@ Edit .env and set OPENAI_API_KEY
 OPENAI_API_KEY=your_api_key_here
 ```
 
-### 4. Start the API
+#### 4. Start the API
 ```bash
 uvicorn app.main:app --reload
 ```
@@ -188,4 +188,3 @@ behavior.
 - What should happen after a P0 incident is resolved?
 - What responsibilities are defined in the incident response policy?
 - What types of issues appear most frequently in customer support tickets?
-
