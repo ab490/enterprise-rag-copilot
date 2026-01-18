@@ -1,86 +1,56 @@
 # Enterprise RAG Copilot
 
-A production-style **Retrieval-Augmented Generation (RAG)** system for enterprise
-operations, built with **LangChain**, **FAISS**, and **FastAPI**.
+A production style Retrieval Augmented Generation (RAG) system for enterprise operations, built with LangChain, FAISS and FastAPI.
 
-The system ingests public, enterprise-style operational documents and enables
-**citation-backed question answering**, along with basic **evaluation** and
-**latency monitoring**.
-
-This project is designed to resemble how RAG systems are built and evaluated
-in real enterprise environments.
+The system ingests public, enterprise-style operational documents and enables citation-backed question answering, along with basic evaluation and latency monitoring.
 
 ---
 
 ## Features
 
-- Ingests **PDF, Markdown, TXT, and CSV** documents
-- Builds a **persistent FAISS vector index**
-- Answers questions with **grounded, citation-backed responses**
-- Logs **retrieval and generation latency**
-- Includes a basic **evaluation endpoint (LLM-as-judge)**
-- Supports **local development and Docker-based deployment**
+- Ingests pdf, md, txt, and csv documents
+- Builds a*persistent FAISS vector index
+- Answers questions with citation-backed responses
+- Logs retrieval and generation latency
+- Includes a basic evaluation endpoint (LLM-as-judge)
+- Supports local development and Docker-based deployment
 
 ---
 
 ## Data Sources
 
-The `data/raw/` directory contains **publicly available, enterprise-style
-operational documents** used to demonstrate realistic Retrieval-Augmented
-Generation (RAG) workflows.
+The `data/raw/` directory contains publicly available, enterprise-style operational documents used to demonstrate the RAG workflows.
 
-No proprietary, private, or personally identifiable data is included.
-
-The current dataset consists of **seven public documents** related to incident
-handling and customer support, spanning multiple file formats
-(**CSV, PDF, Markdown**). These documents represent different layers of
-enterprise operations, including industry standards, organizational policies,
-and hands-on operational runbooks.
+The current dataset consists of **7 public documents** related to **incident handling and customer support**, spanning multiple file formats (CSV, PDF, Markdown). 
+These documents represent different layers of enterprise operations, including industry standards, organizational policies and hands-on operational runbooks.
 
 ### Included Files
 
 - **`customer_support_tickets.csv`**  
-  An anonymized dataset of customer support tickets containing semi-structured
-  metadata and free-text issue descriptions. This file simulates real-world
-  enterprise support data commonly used for retrieval over operational issues
-  and recurring customer problems.
+  An anonymized dataset of customer support tickets containing semi-structured metadata and free-text issue descriptions. 
 
 - **`incident_handling_nist.pdf`**  
-  The NIST SP 800-61 Computer Security Incident Handling Guide, an
-  industry-standard reference defining best practices and lifecycle phases
-  for incident response.
+  The NIST SP 800-61 Computer Security Incident Handling Guide, an industry-standard reference defining best practices and lifecycle phases for incident response.
 
 - **`incident_management_guide_enisa.pdf`**  
-  A public incident management guide published by ENISA, outlining structured
-  approaches to incident classification, coordination, and resolution.
+  A public incident management guide published by ENISA, outlining structured approaches to incident classification, coordination and resolution.
 
 - **`incident_management_guide_google.pdf`**  
-  A publicly available incident management guide based on Site Reliability
-  Engineering (SRE) practices, describing roles, communication models, and
-  response workflows during incidents.
+  A publicly available incident management guide based on Site Reliability Engineering (SRE) practices, describing roles, communication models and response workflows during incidents.
 
 - **`incident_response_policy_gtel.pdf`**  
-  A high-level incident response policy document defining organizational
-  responsibilities, escalation paths, and governance for incident handling.
+  A high-level incident response policy document defining organizational responsibilities, escalation paths and governance for incident handling.
 
 - **`incident_response_plan_hack23ab.md`**  
-  A process-oriented incident response plan describing how policies are
-  operationalized across preparation, detection, containment, recovery, and
-  post-incident review phases.
+  A process-oriented incident response plan describing how policies are operationalized across preparation, detection, containment, recovery and post-incident review phases.
 
 - **`incident_response_runbook.md`**  
-  A step-by-step operational runbook providing concrete actions to be taken
-  during active incidents, representing hands-on guidance used by on-call and
-  operations teams.
+  A step-by-step operational runbook providing concrete actions to be taken during active incidents, representing hands-on guidance used by on-call and operations teams.
 
-These documents are intentionally diverse in **format** (CSV, PDF, Markdown)
-and **abstraction level** (policy, process, runbook) to reflect real enterprise
-knowledge bases and to stress-test document ingestion, retrieval accuracy,
-citation grounding, and end-to-end RAG behavior.
+These documents are diverse in format (CSV, PDF, Markdown) and abstraction level (policy, process, runbook), reflect real enterprise knowledge bases and can be used to test document ingestion, retrieval accuracy,
+citation grounding and end-to-end RAG behavior.
 
-> Additional public or synthetic documents can be added to `data/raw/` to further
-> expand the knowledge base and evaluate the system’s behavior under different
-> document distributions.
+> Additional public or synthetic documents can be added to `data/raw/` to further expand the knowledge base and evaluate the system’s behavior under different document distributions.
 
 ---
 
@@ -93,10 +63,10 @@ enterprise-rag-copilot/
 │   ├── config.py          # App configuration (Pydantic + env vars)
 │   ├── ingest.py          # Document ingestion + indexing
 │   ├── rag.py             # Retrieval + generation logic
-│   ├── evals.py           # LLM-based evaluation utilities
-│   └── logging_utils.py   # Structured logging helpers
+│   ├── evals.py           # LLM based evaluation utilities
+│   └── logging_utils.py   # Logging helpers
 ├── data/
-│   ├── raw/               # Public raw documents
+│   ├── raw/               # Raw documents
 │   ├── index/             # FAISS index
 │   └── logs/              # JSONL logs
 ├── Dockerfile
@@ -168,7 +138,7 @@ The service will be available at ```http://localhost:8000```
 The following commands work for both Docker and Virtualenv once the service is running:
 
 ## Ingest Documents
-Once the API is running, ingest all documents in ```data/raw/``:
+Once the API is running, ingest all documents in ```data/raw/```:
 ```bash
 curl -X POST http://localhost:8000/ingest
 ```
