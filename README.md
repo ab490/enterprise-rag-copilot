@@ -5,6 +5,12 @@ A production style Retrieval Augmented Generation (RAG) system for enterprise op
 The system ingests public, enterprise-style operational documents and enables citation-backed question answering, along with basic evaluation and latency monitoring.
 
 ---
+## Table of Contents
+- [Features](#features)
+- [Data Sources](#data-sources)
+- [Project Structure](#project-structure)
+- [Setup](#setup)
+- [Example Use Cases](#example-use-cases)
 
 ## Features
 
@@ -135,6 +141,8 @@ uvicorn app.main:app --reload
 
 The service will be available at ```http://localhost:8000```
 
+<img src="/images/homepage.png"><br>
+
 The following commands work for both Docker and Virtualenv once the service is running:
 
 ## Ingest Documents
@@ -144,16 +152,22 @@ curl -X POST http://localhost:8000/ingest
 ```
 This builds or updates the FAISS vector index.
 
+<img src="/images/ingest.png"><br>
+
 ## Ask a Question
 ```bash
 curl -X POST http://localhost:8000/ask \
   -H "Content-Type: application/json" \
   -d '{"question":"What are the phases of incident handling?"}'
 ```
+<img src="/images/ask.png"><br>
+
 The response includes:
 - A grounded answer
 - Source citations
 - Latency metrics
+  
+<img src="/images/ask_answer.png"><br>
 
 ## Evaluate an Answer
 ```bash
@@ -161,35 +175,17 @@ curl -X POST http://localhost:8000/eval \
   -H "Content-Type: application/json" \
   -d '{"question":"What are the phases of incident handling?", "answer":"..."}'
 ```
+<img src="/images/eval.png"><br>
+
 This endpoint uses an LLM-as-judge to estimate answer faithfulness and citation
 behavior.
 
+<img src="/images/eval_answer.png"><br>
 
-## Notes on Evaluation and Limitations
-
-- LLM outputs are not deterministic; evaluation scores are approximate.
-
-- The evaluation endpoint prioritizes faithfulness and citation grounding
-rather than exact answer matching.
-
-- This project focuses on system design and workflow realism, not model
-fine-tuning or benchmarking.
 
 ### Example Use Cases
-
 - What are the phases of incident response according to NIST?
-
 - What should happen after a P0 incident is resolved?
-
 - What responsibilities are defined in the incident response policy?
-
 - What types of issues appear most frequently in customer support tickets?
 
-
-This repository demonstrates how production-style RAG systems are built in
-practice, including:
-
-- Multi-format document ingestion
-- Vector-based retrieval
-- Citation-grounded generation
-- Basic evaluation and observability
