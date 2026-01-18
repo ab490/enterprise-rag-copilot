@@ -1,7 +1,7 @@
 import os
 from typing import List, Tuple
 import pandas as pd
-from langchain_community.document_loaders import PyPDFLoader, TextLoader, UnstructuredMarkdownLoader
+from langchain_community.document_loaders import PyPDFLoader, TextLoader, CSVLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
@@ -19,9 +19,7 @@ def _load_one_file(path: str) -> List[Document]:
 
     if ext == ".pdf":
         docs = PyPDFLoader(path).load()
-    elif ext == ".md":
-        docs = UnstructuredMarkdownLoader(path).load()
-    elif ext == ".txt":
+    elif ext in {".md", ".txt"}:
         docs = TextLoader(path, encoding="utf-8").load()
     elif ext == ".csv":
         df = pd.read_csv(path)
@@ -99,6 +97,10 @@ def ingest_all() -> dict:
     Execute the full ingestion pipeline for all raw documents.
     """
     docs = load_raw_documents(settings.raw_data_dir)
+    if not docs:
+        raise RuntimeError("No documents were loaded from RAW_DATA_DIR")
     chunks = chunk_documents(docs)
+    if not chunks:
+        raise RuntimeError("Document loading succeeded but chunking produced 0 chunks")
     n, path = build_or_update_faiss(chunks)
     return {"documents_loaded": len(docs), "chunks_indexed": n, "index_dir": path}

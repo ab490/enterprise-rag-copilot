@@ -7,7 +7,13 @@ from .rag import ask, load_vectorstore, format_context
 from .evals import run_eval
 from .logging_utils import log_event
 
-app = FastAPI(title="Enterprise RAG Copilot", version="1.0.0")
+app = FastAPI(
+    title="Enterprise RAG Copilot",
+    docs_url="/",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
+)
+
 
 class AskRequest(BaseModel):
     question: str
