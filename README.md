@@ -107,12 +107,40 @@ enterprise-rag-copilot/
 ```
 ---
 
-## Setup (Local)
+## Setup
+
+You can run the service in **one of two ways**:
+
+- **Option A: Docker**
+- **Option B: Virtual environment**
+
+
+## A. Docker
+
+
+### 1. Configure environment variables
+```bash
+cp .env.example .env
+```
+
+Edit .env and set OPENAI_API_KEY
+```bash
+OPENAI_API_KEY=your_api_key_here
+```
+
+### 2. Build and run with Docker Compose
+```bash
+docker compose up --build
+```
+
+The service will be available at ```http://localhost:8000```
+
+## B. Virtual environment
 
 ### 1. Create and activate a virtual environment
 ```bash
 python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+source .venv/bin/activate
 ```
 
 ### 2. Install dependencies
@@ -136,6 +164,8 @@ uvicorn app.main:app --reload
 ```
 
 The service will be available at ```http://localhost:8000```
+
+The following commands work for both Docker and Virtualenv once the service is running:
 
 ## Ingest Documents
 Once the API is running, ingest all documents in ```data/raw/``:
@@ -164,17 +194,6 @@ curl -X POST http://localhost:8000/eval \
 This endpoint uses an LLM-as-judge to estimate answer faithfulness and citation
 behavior.
 
-## Docker
-
-### Build and run with Docker Compose
-```bash
-docker compose up --build
-```
-
-Then ingest documents:
-```bash
-curl -X POST http://localhost:8000/ingest
-```
 
 ## Notes on Evaluation and Limitations
 
