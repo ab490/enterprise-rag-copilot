@@ -4,6 +4,7 @@ import time
 from typing import Any, Dict
 from .config import settings
 
+
 def ensure_dirs():
     os.makedirs(settings.log_dir, exist_ok=True)
 

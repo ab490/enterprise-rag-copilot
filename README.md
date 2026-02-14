@@ -7,6 +7,7 @@ The system ingests public, enterprise-style operational documents and enables ci
 ---
 ## Table of Contents
 - [Features](#features)
+- [Architecture](#architecture)
 - [Data Sources](#data-sources)
 - [Project Structure](#project-structure)
 - [Setup](#setup)
@@ -19,7 +20,19 @@ The system ingests public, enterprise-style operational documents and enables ci
 - Answers questions with citation-backed responses
 - Logs retrieval and generation latency
 - Includes a basic evaluation endpoint (LLM-as-judge)
-- Supports local development and Docker-based deployment
+- Uses Gemini on Vertex AI for answer generation and LLM-based evaluation
+- Uses Vertex AI embeddings for document vectorization
+- Performs semantic retrieval locally using a persistent FAISS index
+
+
+## Architecture
+
+- Documents are chunked and embedded using Vertex AI Embeddings
+- Embeddings are stored locally in a persistent FAISS vector index
+- User queries are embedded and matched against FAISS to retrieve relevant chunks
+- Retrieved context is sent to Gemini (Vertex AI) for grounded answer generation
+- Responses include citations and latency metrics
+- An optional evaluation endpoint uses Gemini as an LLM-as-judge for faithfulness
 
 ---
 
@@ -67,16 +80,15 @@ enterprise-rag-copilot/
 ├── app/
 │   ├── main.py            # FastAPI entrypoint
 │   ├── config.py          # App configuration (Pydantic + env vars)
+│   ├── ai_providers.py    # Vertex AI model and embedding providers (LLM abstraction layer)
 │   ├── ingest.py          # Document ingestion + indexing
 │   ├── rag.py             # Retrieval + generation logic
-│   ├── evals.py           # LLM based evaluation utilities
+│   ├── evals.py           # LLM-based evaluation utilities
 │   └── logging_utils.py   # Logging helpers
 ├── data/
 │   ├── raw/               # Raw documents
 │   ├── index/             # FAISS index
 │   └── logs/              # JSONL logs
-├── Dockerfile
-├── docker-compose.yml
 ├── requirements.txt
 ├── .env.example
 └── README.md
@@ -85,13 +97,8 @@ enterprise-rag-copilot/
 
 ## Setup
 
-You can run the service in **one of two ways**:
-
-- **Option A: Docker**
-- **Option B: Virtual environment**
-
-
-### A. Docker
+This project uses **Gemini on Vertex AI**. 
+Authentication is handled using **Google Application Default Credentials (ADC)**.
 
 
 #### 1. Configure environment variables
@@ -99,21 +106,13 @@ You can run the service in **one of two ways**:
 cp .env.example .env
 ```
 
-Edit .env and set OPENAI_API_KEY
+Edit .env and set your Google Cloud project:
 ```bash
-OPENAI_API_KEY=your_api_key_here
+VERTEX_PROJECT=your_gcp_project_id
+VERTEX_LOCATION=your_gcp_project_location
 ```
 
-#### 2. Build and run with Docker Compose
-```bash
-docker compose up --build
-```
-
-The service will be available at ```http://localhost:8000```
-
-### B. Virtual environment
-
-#### 1. Create and activate a virtual environment
+#### 2. Create and activate a virtual environment
 ```bash
 python -m venv .venv
 source .venv/bin/activate
@@ -124,22 +123,20 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-#### 3. Configure environment variables
-```bash
-cp .env.example .env
-```
-
-Edit .env and set OPENAI_API_KEY
-```bash
-OPENAI_API_KEY=your_api_key_here
+#### 3. Authenticate to Google Cloud
+``` bash
+gcloud auth application-default login
+gcloud config set project your_gcp_project_id
+gcloud services enable aiplatform.googleapis.com
 ```
 
 #### 4. Start the API
 ```bash
-uvicorn app.main:app --reload
+uvicorn app.main:app
 ```
 
 The service will be available at ```http://localhost:8000```
+
 
 <img src="/images/homepage.png"><br>
 

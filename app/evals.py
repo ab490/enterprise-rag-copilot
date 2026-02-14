@@ -1,8 +1,8 @@
 from typing import Dict, Any, List
 import re
-from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
-from .config import settings
+from .ai_providers import get_llm
+
 
 JUDGE_PROMPT = ChatPromptTemplate.from_messages([
     ("system", "You are a strict evaluator for RAG answers."),
@@ -17,7 +17,7 @@ def extract_citations(answer: str) -> List[str]:
     return re.findall(r"\[[^\[\]]+?:[^\[\]]+?\]", answer)
 
 def run_eval(question: str, context: str, answer: str) -> Dict[str, Any]:
-    llm = ChatOpenAI(model=settings.openai_model, api_key=settings.openai_api_key, temperature=0)
+    llm = get_llm()
     msg = JUDGE_PROMPT.format_messages(question=question, context=context, answer=answer)
     resp = llm.invoke(msg)
 

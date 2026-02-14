@@ -4,12 +4,12 @@ import pandas as pd
 from langchain_community.document_loaders import PyPDFLoader, TextLoader, CSVLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
-from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from .config import settings
+from .ai_providers import get_embeddings
+
 
 SUPPORTED_EXTS = {".pdf", ".txt", ".md", ".csv"}
-
 
 def _load_one_file(path: str) -> List[Document]:
     """
@@ -34,7 +34,7 @@ def _load_one_file(path: str) -> List[Document]:
     else:
         return []
 
-    # normalize metadata
+    # Normalize metadata
     for d in docs:
         d.metadata = d.metadata or {}
         d.metadata["source"] = os.path.basename(path)
@@ -65,6 +65,7 @@ def chunk_documents(docs: List[Document]) -> List[Document]:
         add_start_index=True,
     )
     chunks = splitter.split_documents(docs)
+    chunks = [c for c in chunks if c.page_content and c.page_content.strip()]    # Filter empty chunks
 
     # Add chunk ids for citations
     for i, c in enumerate(chunks):
@@ -75,21 +76,61 @@ def chunk_documents(docs: List[Document]) -> List[Document]:
 def build_or_update_faiss(chunks: List[Document]) -> Tuple[int, str]:
     """
     Build or update a FAISS vector index from document chunks.
+    Robust to partial embedding failures (Vertex returning fewer vectors).
     """
     os.makedirs(settings.index_dir, exist_ok=True)
-    embeddings = OpenAIEmbeddings(model=settings.embedding_model, api_key=settings.openai_api_key)
+    emb = get_embeddings()
 
     index_path = settings.index_dir
     faiss_file = os.path.join(index_path, "index.faiss")
 
+    texts = [c.page_content for c in chunks]
+    metadatas = [c.metadata for c in chunks]
+
+    BATCH_SIZE = 64
+    kept_texts: List[str] = []
+    kept_metas: List[dict] = []
+    kept_vecs: List[list] = []
+
+    for i in range(0, len(texts), BATCH_SIZE):
+        batch_texts = texts[i:i + BATCH_SIZE]
+        batch_metas = metadatas[i:i + BATCH_SIZE]
+
+        try:
+            batch_vecs = emb.embed_documents(batch_texts)
+        except Exception:
+            for t, m in zip(batch_texts, batch_metas):
+                try:
+                    v1 = emb.embed_documents([t])
+                    if v1 and len(v1) == 1:
+                        kept_texts.append(t)
+                        kept_metas.append(m)
+                        kept_vecs.append(v1[0])
+                except Exception:
+                    continue
+            continue
+
+        n = min(len(batch_texts), len(batch_vecs))
+        for j in range(n):
+            kept_texts.append(batch_texts[j])
+            kept_metas.append(batch_metas[j])
+            kept_vecs.append(batch_vecs[j])
+
+    if not kept_texts:
+        raise RuntimeError("No chunks could be embedded (all embedding attempts failed).")
+
     if os.path.exists(faiss_file):
-        vs = FAISS.load_local(index_path, embeddings, allow_dangerous_deserialization=True)
-        vs.add_documents(chunks)
+        vs = FAISS.load_local(index_path, emb, allow_dangerous_deserialization=True)
+        vs.add_embeddings(text_embeddings=list(zip(kept_texts, kept_vecs)), metadatas=kept_metas)
     else:
-        vs = FAISS.from_documents(chunks, embeddings)
+        vs = FAISS.from_embeddings(
+            text_embeddings=list(zip(kept_texts, kept_vecs)),
+            embedding=emb,
+            metadatas=kept_metas,
+        )
 
     vs.save_local(index_path)
-    return len(chunks), index_path
+    return len(kept_texts), index_path
 
 
 def ingest_all() -> dict:

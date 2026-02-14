@@ -1,10 +1,11 @@
 import time
 from typing import Dict, Any, List
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
 from langchain_core.prompts import ChatPromptTemplate
 from .config import settings
+from .ai_providers import get_llm, get_embeddings
+
 
 SYSTEM = """You are an enterprise operations copilot.
 Use ONLY the provided context to answer.
@@ -21,7 +22,7 @@ def load_vectorstore() -> FAISS:
     """
     Load the FAISS vector store from disk.
     """
-    embeddings = OpenAIEmbeddings(model=settings.embedding_model, api_key=settings.openai_api_key)
+    embeddings = get_embeddings()
     return FAISS.load_local(settings.index_dir, embeddings, allow_dangerous_deserialization=True)
 
 
@@ -52,14 +53,10 @@ def ask(question: str) -> Dict[str, Any]:
     retriever = vs.as_retriever(search_kwargs={"k": settings.top_k})
 
     t0 = time.time()
-    docs = retriever.get_relevant_documents(question)
+    docs = retriever.invoke(question)
     retrieval_ms = int((time.time() - t0) * 1000)
-
-    llm = ChatOpenAI(
-        model=settings.openai_model,
-        api_key=settings.openai_api_key,
-        temperature=0.2,
-    )
+    
+    llm = get_llm()
 
     context = format_context(docs)
 
