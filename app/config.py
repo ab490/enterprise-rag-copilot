@@ -12,7 +12,7 @@ class Settings(BaseModel):
 
     # Choose models via env
     vertex_model: str = os.getenv("VERTEX_MODEL", "gemini-2.5-flash-lite")
-    vertex_embedding_model: str = os.getenv("VERTEX_EMBED_MODEL", "text-embedding-004")
+    vertex_embedding_model: str = os.getenv("VERTEX_EMBED_MODEL", "text-embedding-005")
 
     # Data paths
     raw_data_dir: str = os.getenv("RAW_DATA_DIR", "./data/raw")
